@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Noise extends AppCompatActivity {
 
@@ -43,10 +44,13 @@ public class Noise extends AppCompatActivity {
     ProgressBar result;
     int max;
     int offset = 5;
+    Averageamp averageamp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main1);
+
+        averageamp = new Averageamp();
 
         audioManager = (AudioManager) getSystemService(this.AUDIO_SERVICE);
         max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
@@ -114,17 +118,19 @@ public class Noise extends AppCompatActivity {
     }
 
     Handler handler = new Handler();
-    Thread periodicCheck = new Thread(new Runnable() {
+    private Thread periodicCheck = new Thread(new Runnable() {
         @Override
         public void run() {
             double amp = getAmplitude();
+
             //Log.d("amplitude", ""+amp);
             output_text.setText(""+amp);
             progressBar.setProgress((int) amp);
             handler.postDelayed(periodicCheck, 100);
 
+            averageamp.add(amp);
             //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, );
-            double prec = amp/30000.0;
+            double prec = averageamp.getAv()/30000.0;
             int now = (int) Math.min(max, offset-3 + 6 * prec);
             //Log.d("vol", "y "+now);
 
@@ -136,6 +142,48 @@ public class Noise extends AppCompatActivity {
 
     });
 
+
+    class Averageamp {
+
+        private static final int TOTAL = 50;
+        int position = 1;
+        // niestety budowa klass jest inna niz w pythonie
+        // tak samo w wypadku ktory miales tworzyl bys nową co pare sekund, nie miala by ona pojecia o pozsotalych odczytach
+
+        double[] array;
+
+        Averageamp(){
+            array = new double[TOTAL];
+
+            for(int i = 0; i < TOTAL; i++){
+                array[i] = (double) max/2.;
+            }
+        }
+
+        void add(double value){
+            Log.d("Mod", ""+position%TOTAL);ZIĘ
+
+            if(value < 10){
+                return;
+            }
+            array[position % TOTAL] = value;
+            position += 1;
+
+        }
+
+        double getAv(){
+            double sum = 0;
+            for (int i = 0; i<TOTAL; i++){
+                sum += array[i];
+            }
+
+            double av = sum/TOTAL;
+            Log.d("Averageamp", "av: "+av);
+            return av;
+        }
+
+
+    }
 
 
     @Override
