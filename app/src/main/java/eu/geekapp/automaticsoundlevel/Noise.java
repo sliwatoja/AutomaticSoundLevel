@@ -161,7 +161,7 @@ public class Noise extends AppCompatActivity {
         }
 
         void add(double value){
-            Log.d("Mod", ""+position%TOTAL);ZIĘ
+            Log.d("Mod", ""+position%TOTAL);
 
             if(value < 10){
                 return;
